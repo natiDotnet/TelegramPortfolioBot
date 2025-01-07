@@ -45,6 +45,17 @@ public class Portfolio : IDisposable
                 var projects = GetProjects();
                 await bot.SendMessage(msg.Chat, "My Projects", replyMarkup: projects);
                 break;
+            case "/contact" or "Contact me ✉️":
+                Console.WriteLine("contact clicked");
+                var contact = "BEGIN:VCARD\n" +
+                              "VERSION:3.0\n" +
+                              "N:Yirga;Natnael\n" +
+                              "ORG:.NET Developer\n" +
+                              "TEL;TYPE=voice,work,pref:+251905410217\n" +
+                              "EMAIL:natidotnet@gmail.com\n" +
+                              "END:VCARD"; 
+                await bot.SendContact(msg.Chat, phoneNumber: "+251905410217", firstName: "Natnael", lastName: "Yirga", vcard: contact);
+                break;
 
         }
 
@@ -54,9 +65,9 @@ public class Portfolio : IDisposable
     {
         return new ReplyKeyboardMarkup(true)
                 .AddButtons("Profile", "Skills")
-                .AddNewRow("Projects")
-                .AddNewRow("Contact me ✉️")
-                .AddButton("Website", "https://nati-net-portfolio.vercel.app/en");
+                .AddNewRow("Projects")             
+                .AddNewRow(KeyboardButton.WithWebApp("Website", "https://nati-net-portfolio.vercel.app/en"))
+                .AddButton("Contact me ✉️");
     }
     private InlineKeyboardMarkup GetSkills()
     {
