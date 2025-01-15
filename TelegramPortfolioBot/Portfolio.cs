@@ -6,6 +6,18 @@ using Telegram.Bot.Types.ReplyMarkups;
 namespace TelegramPortfolio;
 public class Portfolio : IDisposable
 {
+    private class SocialMedia
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Link { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+    }
+    private class Project
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Link { get; set; } = string.Empty;
+        public bool WithUrl { get; set; }
+    }
     private readonly TelegramBotClient bot;
     private readonly IConfiguration config;
 
@@ -31,15 +43,11 @@ public class Portfolio : IDisposable
                     replyMarkup: replyMarkup);
                 break;
             case "/about" or "Profile":
-            var profile = 
-            """
-            Name: <b>Natnael Yirga</b> <b style='background-color: #5c2d91; color: white; padding: 5px; border-radius: 5px;'>.NET</b>
-            <b>LinkedIn: </b><i><a href='https://www.linkedin.com/in/natidotnet'>@natidotnet</a></i>
-            <b>X: </b><a href='https://x.com/natidotnet'>@natidotnet</a>
-            <b>Telegram: </b><a href='https://t.me/natidotnet'>@natidotnet</a>
-            <b>Github: </b><a href='https://github.com/natiDotnet'>@natidotnet</a>
-
-            """;
+                var profile = "Name: <b>Natnael Yirga</b>\n\n";
+                foreach (var media in config.GetSection("SocialMedias").Get<SocialMedia[]>() ?? [])
+                {
+                    profile += $"<b>{media.Name}: </b><i><a href='{media.Link}'>@natidotnet</a></i>\n";
+                }
                 await bot.SendPhoto(
                     msg.Chat,
                     config["Image"]!,
@@ -75,14 +83,14 @@ public class Portfolio : IDisposable
         return new ReplyKeyboardMarkup(true)
                 .AddButtons("Profile", "Skills")
                 .AddNewRow("Projects")             
-                .AddNewRow(KeyboardButton.WithWebApp("Website", "https://nati-net-portfolio.vercel.app/en"))
+                .AddNewRow(KeyboardButton.WithWebApp("Website", config["Website"]!))
                 .AddButton("Contact me ✉️");
     }
     private InlineKeyboardMarkup GetSkills()
     {
         var skills = new InlineKeyboardMarkup();
         int index = 0;
-        foreach (string skill in config.GetSection("Skills").Get<string[]>() ?? [] )
+        foreach (string skill in config.GetSection("Skills").Get<string[]>() ?? [])
         {
             skills.AddButton(skill, skill);
             if (index % 3 == 0)
@@ -95,17 +103,20 @@ public class Portfolio : IDisposable
     }
     private InlineKeyboardMarkup GetProjects()
     {
-        return new InlineKeyboardMarkup()
-        .AddButton("Oromia Civil Registration System", "or")
-        .AddNewRow()
-        .AddButton(InlineKeyboardButton.WithUrl("Telebirr C2B Payment API integration", "https://github.com/natiDotnet/Appdiv.Payment/tree/master/Appdiv.Payment.Telebirr")) 
-        .AddNewRow()
-        .AddButton(InlineKeyboardButton.WithUrl("CBE birr C2B Payment API integration", "https://github.com/natiDotnet/Appdiv.Payment/tree/master/Appdiv.Payment.CBEBirr")) 
-        .AddNewRow()
-        .AddButton("Attendance Management With ZKTeco SDK", "zkteco")
-        .AddNewRow()
-        .AddButton("Ethiopian to Gregorian Date Convertor", "dateconvertor");
-
+        var projects = new InlineKeyboardMarkup();
+        foreach (var project in config.GetSection("Projects").Get<Project[]>() ?? [])
+        {
+            if (project.WithUrl)
+            {
+                projects.AddButton(InlineKeyboardButton.WithUrl(project.Name, project.Link));
+            }
+            else
+            {
+                projects.AddButton(project.Name, project.Link);
+            }
+            projects.AddNewRow();
+        }
+        return projects;
     }
 
 }
