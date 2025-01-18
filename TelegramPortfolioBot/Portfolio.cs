@@ -6,6 +6,14 @@ using Telegram.Bot.Types.ReplyMarkups;
 namespace TelegramPortfolio;
 public class Portfolio : IDisposable
 {
+    private class Profile
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Email { get; set; }
+        public string UserName { get; set; }
+    }
     private class SocialMedia
     {
         public string Name { get; set; } = string.Empty;
@@ -35,6 +43,7 @@ public class Portfolio : IDisposable
 
     public async Task OnMessage(Message msg, UpdateType type)
     {
+        var profile = config.GetSection(nameof(Profile)).Get<Profile>();
         switch (msg.Text)
         {
             case "/start":
@@ -43,15 +52,15 @@ public class Portfolio : IDisposable
                     replyMarkup: replyMarkup);
                 break;
             case "/about" or "Profile":
-                var profile = "Name: <b>Natnael Yirga</b>\n\n";
+                var about = $"Name: <b>{profile?.FirstName} {profile?.LastName}</b>\n\n";
                 foreach (var media in config.GetSection("SocialMedias").Get<SocialMedia[]>() ?? [])
                 {
-                    profile += $"<b>{media.Name}: </b><i><a href='{media.Link}'>@natidotnet</a></i>\n";
+                    about += $"<b>{media.Name}: </b><i><a href='{media.Link}'>@{profile?.UserName}</a></i>\n";
                 }
                 await bot.SendPhoto(
                     msg.Chat,
                     config["Image"]!,
-                    profile
+                    about
                     , ParseMode.Html);
                 break;
             case "/skills" or "Skills":
@@ -64,14 +73,17 @@ public class Portfolio : IDisposable
                 break;
             case "/contact" or "Contact me ✉️":
                 Console.WriteLine("contact clicked");
-                var contact = "BEGIN:VCARD\n" +
-                              "VERSION:3.0\n" +
-                              "N:Yirga;Natnael\n" +
-                              "ORG:.NET Developer\n" +
-                              "TEL;TYPE=voice,work,pref:+251905410217\n" +
-                              "EMAIL:natidotnet@gmail.com\n" +
-                              "END:VCARD"; 
-                await bot.SendContact(msg.Chat, phoneNumber: "+251905410217", firstName: "Natnael", lastName: "Yirga", vcard: contact);
+                
+                var contact = $"""
+                            BEGIN:VCARD
+                            VERSION:3.0
+                            N:{profile?.LastName};{profile?.FirstName}
+                            ORG:.NET Developer
+                            TEL;TYPE=voice,work,pref:{profile?.PhoneNumber}
+                            EMAIL:{profile?.Email}
+                            END:VCARD
+                            """; 
+                await bot.SendContact(msg.Chat, phoneNumber: profile?.PhoneNumber!, firstName: profile?.FirstName!, lastName: profile?.LastName, vcard: contact);
                 break;
 
         }
