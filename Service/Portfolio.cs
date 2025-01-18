@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -29,9 +30,9 @@ public class Portfolio : IDisposable
     private readonly TelegramBotClient bot;
     private readonly IConfiguration config;
 
-    public Portfolio(TelegramBotClient bot, IConfiguration config)
+    public Portfolio(IConfiguration config)
     {
-        this.bot = bot;
+        this.bot = new TelegramBotClient(config["Token"]!);
         this.config = config;
         bot.OnMessage += OnMessage;
     }
@@ -41,6 +42,10 @@ public class Portfolio : IDisposable
         bot.OnMessage -= OnMessage;
     }
 
+    public async Task SendMessage(long userid, string message)
+    {
+        await bot.SendMessage(userid, message);
+    }
     public async Task OnMessage(Message msg, UpdateType type)
     {
         var profile = config.GetSection(nameof(Profile)).Get<Profile>();
@@ -73,7 +78,7 @@ public class Portfolio : IDisposable
                 break;
             case "/contact" or "Contact me ✉️":
                 Console.WriteLine("contact clicked");
-                
+
                 var contact = $"""
                             BEGIN:VCARD
                             VERSION:3.0
@@ -82,8 +87,13 @@ public class Portfolio : IDisposable
                             TEL;TYPE=voice,work,pref:{profile?.PhoneNumber}
                             EMAIL:{profile?.Email}
                             END:VCARD
-                            """; 
+                            """;
                 await bot.SendContact(msg.Chat, phoneNumber: profile?.PhoneNumber!, firstName: profile?.FirstName!, lastName: profile?.LastName, vcard: contact);
+                break;
+            default:
+                var cc = msg.Chat.Id;
+                var ct = new ChatId(737328646);
+                await bot.SendMessage(ct, "Please select from the menu", replyMarkup: GetMenu());
                 break;
 
         }
@@ -92,9 +102,17 @@ public class Portfolio : IDisposable
 
     private ReplyKeyboardMarkup GetMenu()
     {
+        // var bt = new KeyboardButton
+        // {
+        //     Text = "Profile",
+        //     RequestChat = new KeyboardButtonRequestChat
+        //     {
+
+        //     }
+        // };
         return new ReplyKeyboardMarkup(true)
-                .AddButtons("Profile", "Skills")
-                .AddNewRow("Projects")             
+                .AddButtons("Profile", KeyboardButton.WithRequestPoll("Skills", PollType.Regular))
+                .AddNewRow("Projects")
                 .AddNewRow(KeyboardButton.WithWebApp("Website", config["Website"]!))
                 .AddButton("Contact me ✉️");
     }

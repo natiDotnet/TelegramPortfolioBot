@@ -23,5 +23,6 @@ Global
 		{DF8BE012-F77E-451A-9E42-A9DAF1A0F94F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF8BE012-F77E-451A-9E42-A9DAF1A0F94F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF8BE012-F77E-451A-9E42-A9DAF1A0F94F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF8BE012-F77E-451A-9E42-A9DAF1A0F94F}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 	EndGlobalSection
 EndGlobal
