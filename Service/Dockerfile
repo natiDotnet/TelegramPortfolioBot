@@ -5,8 +5,8 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /TelegramPortfolioBot
-COPY ["Service/Service.csproj", "Service/"]
-RUN dotnet restore "Service/Service.csproj"
+COPY ["TelegramPortfolioBot/Service/Service.csproj", "Service/"]
+RUN dotnet restore "TelegramPortfolioBot/Service/Service.csproj"
 COPY . .
 WORKDIR "/TelegramPortfolioBot/Service"
 RUN dotnet build "Service.csproj" -c $BUILD_CONFIGURATION -o /app/build
